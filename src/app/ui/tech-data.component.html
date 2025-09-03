@@ -1,0 +1,182 @@
+<div class="container">
+  <h2>GraphDB Tech Product Data</h2>
+
+  <!-- Filters Section -->
+  <div class="filters-container">
+    <div class="filters-row">
+      <div>
+        <label>Category</label>
+        <div class="chips">
+          <span *ngFor="let cat of selectedCategories" class="chip" (click)="removeChip('category', cat)">
+            {{ cat }} &times;
+          </span>
+        </div>
+        <div class="dropdown">
+          <div class="dropdown-selected" (click)="onDropdownToggle($event, 'category')">
+            {{ selectedCategories.length > 0 ? selectedCategories.length + ' selected' : 'Select Categories' }}
+          </div>
+          <div class="dropdown-menu" *ngIf="dropdownOpen.category">
+            <div *ngFor="let cat of categories">
+              <label>
+                <input type="checkbox" [checked]="selectedCategories.includes(cat)"
+                  (change)="onCategoryChange(cat, $event)">
+                {{ cat }}
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label>SubCategory</label>
+        <div class="chips">
+          <span *ngFor="let sub of selectedSubCategories" class="chip" (click)="removeChip('sub', sub)">
+            {{ sub }} &times;
+          </span>
+        </div>
+        <div class="dropdown" [class.disabled]="selectedCategories.length === 0">
+          <div class="dropdown-selected" (click)="selectedCategories.length > 0 && onDropdownToggle($event, 'sub')">
+            {{ selectedSubCategories.length > 0 ? selectedSubCategories.length + ' selected' : 'Select Subcategories' }}
+          </div>
+          <div class="dropdown-menu" *ngIf="dropdownOpen.sub">
+            <!-- Iterate over available subCategories -->
+            <div *ngFor="let sub of subCategories">
+              <label>
+                <input type="checkbox" [checked]="selectedSubCategories.includes(sub)"
+                  (change)="onSubCategoryChange(sub, $event)">
+                {{ sub }}
+              </label>
+            </div>
+            <div *ngIf="subCategories.length === 0" class="dropdown-empty">
+              No options available
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label>EndCategory</label>
+        <div class="chips">
+          <span *ngFor="let end of selectedEndCategories" class="chip" (click)="removeChip('end', end)">
+            {{ end }} &times;
+          </span>
+        </div>
+        <div class="dropdown" [class.disabled]="selectedSubCategories.length === 0">
+          <div class="dropdown-selected" (click)="selectedSubCategories.length > 0 && onDropdownToggle($event, 'end')">
+            {{ selectedEndCategories.length > 0 ? selectedEndCategories.length + ' selected' : 'Select End Categories'
+            }}
+          </div>
+          <div class="dropdown-menu" *ngIf="dropdownOpen.end">
+            <div *ngFor="let end of endCategories">
+              <label>
+                <input type="checkbox" [checked]="selectedEndCategories.includes(end)"
+                  (change)="onEndCategoryChange(end, $event)">
+                {{ end }}
+              </label>
+            </div>
+            <div *ngIf="endCategories.length === 0" class="dropdown-empty">
+              No options available
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filters-row">
+      <div>
+        <label>Price Range</label>
+        <div class="input-pair">
+          <input type="number" placeholder="Min" [(ngModel)]="minPrice">
+          <input type="number" placeholder="Max" [(ngModel)]="maxPrice">
+        </div>
+      </div>
+      <div>
+        <label>Discount %</label>
+        <div class="input-pair">
+          <input type="number" placeholder="Min" [(ngModel)]="minDiscount">
+          <input type="number" placeholder="Max" [(ngModel)]="maxDiscount">
+        </div>
+      </div>
+      <div>
+        <label>Store</label>
+        <div class="chips">
+          <span *ngFor="let s of selectedStores" class="chip" (click)="removeChip('store', s)">
+            {{ s }} &times;
+          </span>
+        </div>
+        <div class="dropdown">
+          <div class="dropdown-selected" (click)="onDropdownToggle($event, 'store')">
+            {{ selectedStores.length > 0 ? selectedStores.length + ' selected' : 'Select Stores' }}
+          </div>
+          <div class="dropdown-menu" *ngIf="dropdownOpen.store">
+            <div *ngFor="let s of stores">
+              <label>
+                <input type="checkbox" [checked]="selectedStores.includes(s)" (change)="onStoreChange(s, $event)">
+                {{ s }}
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="button-wrapper">
+        <button (click)="applyFilters()">Apply Filters</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div *ngIf="isLoading" class="feedback">
+    <p>Loading data...</p>
+  </div>
+
+  <div *ngIf="error" class="feedback">
+    <p class="error-message">{{ error }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !error && tableData.length === 0" class="feedback">
+    <p>No data found for the selected filters.</p>
+  </div>
+
+  <div *ngIf="!isLoading && !error && tableData.length > 0" class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Store</th>
+          <th>Category Path</th>
+          <th>Regular Price</th>
+          <th>Discounted Price</th>
+          <th>Discount %</th>
+          <th>URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of tableData">
+          <td>{{ item['title']?.value || '-' }}</td>
+          <td>{{ item['store']?.value || '-' }}</td>
+          <td>{{ item['fullCategory']?.value || '-' }}</td>
+          <td>{{ item['regularPrice']?.value ? item['regularPrice'].value + " мкд" : '-' }}</td>
+          <td>{{ item['discountedPrice']?.value ? item['discountedPrice'].value + " мкд" : '-' }}</td>
+          <td>{{ item['discountPercent']?.value ? item['discountPercent'].value + "%" : '-' }}</td>
+          <td>
+            <a *ngIf="item['url']?.value" [href]="item['url'].value" target="_blank" rel="noopener noreferrer">Link</a>
+            <span *ngIf="!item['url']?.value">-</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+<div class="pagination" *ngIf="!isLoading && !error && tableData.length > 0">
+  <button (click)="prevPage()" [disabled]="currentPage === 1">&laquo; Previous</button>
+
+  <span>Page 
+    <input type="number" [value]="currentPage" (change)="goToPage($event)" min="1" [max]="totalPages">
+    of {{ totalPages }}
+  </span>
+
+  <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next &raquo;</button>
+</div>
+
+</div>
